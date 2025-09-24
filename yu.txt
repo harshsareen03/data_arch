@@ -1,0 +1,319 @@
+terms:
+Data scource/ingestion-
+Landing/raw zone-
+transformation/ETL/ELT
+Serving/Curated zone-
+orchestration-schedules and dependencies(Dagster/airflow)
+observability/Monitoring-metrics,lineage,SLAs
+source-->ingest---->raw storage---->tranform ----->curated storage--->(bi/apps/ml/ai/rpa)
+structure-table
+semi-structure-json/xml/avro
+unstructure-media-doc,video,pdf,audio,free-text/s3/hdfs or elastic search for text
+
+data muniplation(python /pandas),sql/bigquery/postgres,airflow/prefect,yaml,json,.env,patterns(resusable function,logging
+ and error handeling)
+
+ source-->processing--->storage--->analytics
+
+dag-directed acyclic graph
+
+directed-task has an order( arrows go one way )
+
+acyclic-no loops /cycles allowed(you can't circle back)
+
+graph-its a collection of nodes(tasks) connected by edges(dependencies)
+
+kafka/spark- streaming realtime events -process streaming data(logs,clicks)
+
+data cleaning & validation -remove duplicates,handle missing values,validate schema-python & pandas
+
+data partition & storage -store data for analytics -partition by date/user,use compression - s3+parquet/delta lake,hive
+
+perfomance optimization - query/etl speed---- sqloptimization,spark caching 
+
+
+
+producer --->kafka broker(musicians)----->consumer
+                 \zookeeper(conductor)
+
+
+zookeeper(register broker)--->kafka broker(connected and ready)
+
+
+zookeeper
+    topic name
+    number of partition
+    partition leader
+    replication factor
+
+kafka--->updates zookeeper-->\\ metadata information
+
+
+kafka-->persists to postgres(stream)--->batch transform to parquet in a data lake(minio)--->run a dbt model for analysis
+
+kafka,->consumer--->raw-->batch etl--->datalake
+
+
+kafka-api,webhooks,meesage queues(data ingestion(streaming - batch))
+
+
+
+Integration & Advanced Techniques 
+* High-level view of integrations & advanced workflows
+* Quick guided checklist
+* Outcome: Recognize complexity & impacts of integration choices
+
+High-Level View of Integrations & Advanced Workflows
+
+The "Why" of Integration:
+Data Synchronization: 
+Process Automation:
+Unified User Experience: 
+
+2. Common Integration Patterns (From Simple to Complex):
+Point-to-Point: 
+Hub-and-Spoke (ESB / iPaaS): 
+API-Led Connectivity:
+    System APIs: 
+    Process APIs: 
+    Experience APIs:
+3. Advanced Workflows & Automation:
+    Orchestration: 
+    Business Process Automation (BPA): 
+    Event-Driven Architecture:
+4. Key Considerations & Impacts of Your Choices:
+
+
+POINT TO POINT Architecture(SPAGHETTI Architecture)
+--------------------------------------------------
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   ORDER     │────│  INVENTORY  │────│  PAYMENT    │
+│   SERVICE   │    │   SERVICE   │    │   SERVICE   │
+└─────────────┘    └─────────────┘    └─────────────┘
+     │                   │                   │
+     └───────────────────┼───────────────────┘
+                         │
+                 ┌─────────────┐
+                 │  SHIPPING   │
+                 │   SERVICE   │
+                 └─────────────┘
+
+2. The Solution: Event-Driven Architecture (Hub & Spoke)
+text
+                 ┌─────────────────────────────────┐
+                 │         EVENT BUS (HUB)         │
+                 │  ┌─────────────────────────┐    │
+                 │  │       EVENT QUEUE       │    │
+                 │  └─────────────────────────┘    │
+                 └─────────────────────────────────┘
+                    │    │    │    │    │    │
+    ┌───────────────┼────┼────┼────┼────┼────┼───────────────┐
+    │               │    │    │    │    │    │               │
+    ▼               ▼    ▼    ▼    ▼    ▼    ▼               ▼
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ ORDER   │    │INVENTORY│    │ PAYMENT │    │SHIPPING │    │NOTIFY   │
+│SERVICE  │    │SERVICE  │    │ SERVICE │    │SERVICE  │    │SERVICE  │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+
+3. Detailed Flow Diagram
+ORDER CREATION WORKFLOW:
+
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   ORDER     │    │  INVENTORY  │    │   PAYMENT   │    │  SHIPPING   │
+│   SERVICE   │    │   SERVICE   │    │   SERVICE   │    │   SERVICE   │
+└──────┬──────┘    └──────┬──────┘    └──────┬──────┘    └──────┬──────┘
+       │                  │                  │                  │
+       │ 1. create_order()│                  │                  │
+       │─────────────────>│                  │                  │
+       │                  │                  │                  │
+       │ 2. ORDER_CREATED │                  │                  │
+       │───────────────────────────────────────────────────────>│
+       │                  │                  │                  │
+       │                  │ 3. handle_order_created()           │
+       │                  │<────────────────────────────────────│
+       │                  │                  │                  │
+       │                  │ 4. STOCK_RESERVED│                  │
+       │                  │─────────────────────────────────────>│
+       │                  │                  │                  │
+       │                  │                  │ 5. process_payment()
+       │                  │                  │<─────────────────│
+       │                  │                  │                  │
+       │                  │                  │ 6. PAYMENT_PROCESSED
+       │                  │                  │──────────────────>│
+       │                  │                  │                  │
+       │                  │ 7. handle_payment_processed()       │
+       │                  │<────────────────────────────────────│
+       │                  │                  │                  │
+       │                  │ 8. INVENTORY_UPDATED                │
+       │                  │─────────────────────────────────────>│
+       │                  │                  │                  │
+       │                  │                  │ 9. create_shipment()
+       │                  │                  │<─────────────────│
+       │                  │                  │                  │
+       │                  │                  │ 10. SHIPMENT_CREATED
+       │                  │                  │──────────────────>│
+┌──────┴──────┐    ┌──────┴──────┐    ┌──────┴──────┐    ┌──────┴──────┐
+│   ORDER     │    │  INVENTORY  │    │   PAYMENT   │    │  SHIPPING   │
+│ COMPLETE!   │    │  UPDATED!   │    │ PROCESSED!  │    │  CREATED!   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+
+4. Event Types and Subscriptions Matrix
+SERVICE          SUBSCRIBES TO...                  PUBLISHES...
+───────────────  ────────────────────────────────  ────────────────────────────────
+Order Service    (none - initiator)                ORDER_CREATED
+Inventory Service ORDER_CREATED, PAYMENT_PROCESSED STOCK_RESERVED, OUT_OF_STOCK, 
+                                                 INVENTORY_UPDATED
+Payment Service  STOCK_RESERVED                    PAYMENT_PROCESSED, PAYMENT_FAILED
+Shipping Service INVENTORY_UPDATED                 SHIPMENT_CREATED
+Notification Service ORDER_CREATED, STOCK_RESERVED, (none - consumer only)
+                 PAYMENT_PROCESSED, 
+                 INVENTORY_UPDATED,
+                 SHIPMENT_CREATED,
+                 PAYMENT_FAILED
+
+5.Error Handling Flow Diagram
+ERROR SCENARIO: Payment Fails
+
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   ORDER     │    │  INVENTORY  │    │   PAYMENT   │    │NOTIFICATION │
+│   SERVICE   │    │   SERVICE   │    │   SERVICE   │    │   SERVICE   │
+└──────┬──────┘    └──────┬──────┘    └──────┬──────┘    └──────┬──────┘
+       │                  │                  │                  │
+       │ 1. ORDER_CREATED │                  │                  │
+       │─────────────────>│                  │                  │
+       │                  │                  │                  │
+       │                  │ 2. STOCK_RESERVED│                  │
+       │                  │─────────────────────────────────────>│
+       │                  │                  │                  │
+       │                  │                  │ 3. PAYMENT_FAILED│
+       │                  │                  │<─────────────────│
+       │                  │                  │                  │
+       │                  │                  │ 4. PAYMENT_FAILED│
+       │                  │                  │──────────────────>│
+       │                  │                  │                  │
+       │                  │ 5. handle_payment_failure()         │
+       │                  │<────────────────────────────────────│
+       │                  │                  │                  │
+       │                  │ 6. RESTORE_STOCK │                  │
+       │                  │─────────────────────────────────────>│
+┌──────┴──────┐    ┌──────┴──────┐    ┌──────┴──────┐    ┌──────┴──────┐
+│   ORDER     │    │ STOCK       │    │ PAYMENT     │    │ NOTIFICATION│
+│   STUCK     │    │ RESTORED    │    │ FAILED      │    │   SENT      │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+
+6.Benefits Visualization
+BEFORE (Point-to-Point)           AFTER (Event-Driven)
+─────────────────────────         ─────────────────────────
+
+┌─┐ ┌─┐ ┌─┐                       ┌─┐     ┌─┐     ┌─┐
+│A│─│B│─│C│                       │A│     │B│     │C│
+└─┘ └─┘ └─┘                       └─┘     └─┘     └─┘
+  \   /                             │       │       │
+   \ /                              └───┐ ┌─┘       │
+    X                                    ││         │
+   / \                                  ┌┴┴┐        │
+  /   \                                 │ E│        │
+┌─┐ ┌─┐                                │ V│        │
+│D│ │E│                                │ E│        │
+└─┘ └─┘                                │ N│        │
+                                       │ T│        │
+Tight coupling                      │ B│        │
+Hard to scale                       │ U│        │
+Single points of failure            │ S│        │
+                                       └──┘        │
+                                         │         │
+                                       ┌─┐ ┌─┐ ┌─┐
+                                       │D│ │E│ │F│
+                                       └─┘ └─┘ └─┘
+
+Loose coupling
+Easy to scale
+Fault tolerance
+Easy to add new services (F)
+
+
+7.Real-World Analogies
+Point-to-Point = Telephone Chain
+
+Person A calls B, who calls C, who calls D
+
+If B is busy, the whole chain breaks
+
+Hard to add Person E to the conversation
+
+Event-Driven = Radio Broadcast
+
+Radio station broadcasts a message
+
+Many listeners can tune in simultaneously
+
+New listeners can join without affecting others
+
+If one listener misses it, others still hear it
+
+8.Key Technical Concepts Illustrated
+
+EVENT BUS COMPONENTS:
+┌─────────────────────────────────────────────────────────┐
+│                    EVENT BUS                            │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │                 EVENT QUEUE                         │ │
+│  │  • ORDER_CREATED     • STOCK_RESERVED               │ │
+│  │  • PAYMENT_PROCESSED • INVENTORY_UPDATED            │ │
+│  │  • SHIPMENT_CREATED  • etc.                         │ │
+│  └─────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │               SUBSCRIPTION MANAGER                  │ │
+│  │  ORDER_CREATED: [InventoryService, Notification]    │ │
+│  │  STOCK_RESERVED: [PaymentService, Notification]     │ │
+│  │  PAYMENT_PROCESSED: [InventoryService, Notification]│ │
+│  └─────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │                 EVENT DISPATCHER                    │ │
+│  │  • Async processing                                 │ │
+│  │  • Error handling                                   │ │
+│  │  • Retry mechanisms                                 │ │
+│  └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+
+9.When to Use This Pattern
+
+USE EVENT-DRIVEN WHEN:
+Multiple systems need to react to the same event
+You need loose coupling between services
+System needs to be highly scalable
+You want to add new features without modifying existing code
+You need reliable, asynchronous processing
+
+USE POINT-TO-POINT WHEN:
+Simple, one-time integrations
+Only two systems need to communicate
+Low complexity requirements
+Quick prototypes or MVPs
+
+COMPLEXITY CURVE:
+    ▲
+    │
+    │               Event-Driven
+    │              ┌─────────────┐
+    │              │  Scalable   │
+    │              │  & Robust   │
+    │ Point-to-Point             │
+    │ ┌─────────┐  │             │
+    │ │ Quick   │  │             │
+    │ │ & Simple│  │             │
+    │ └─────────┘  └─────────────┘
+    └─────────────────────────────▶
+     Simple                  Complex
+     Requirements            Requirements
+
+
+10. event flow sequence
+
+order services       event bus
+                           |
+                           event bus receives  and DISPATCHEs 
+|
+|
+order service
+KAFKA-FLINK-DATABASE-KUBERNATE-DOCKER-MONITORING-DATA GOVERNANCE-SECURITY-CI/CD- 

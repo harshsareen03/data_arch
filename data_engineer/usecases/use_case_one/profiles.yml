@@ -1,0 +1,11 @@
+default:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: de_user
+      password: de_pass
+      dbname: de_db
+      schema: analytics

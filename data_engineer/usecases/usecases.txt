@@ -1,0 +1,1 @@
+(page views, purchases) → store them reliably → run analytics.

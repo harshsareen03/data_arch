@@ -1,0 +1,69 @@
+# Great Expectations Core Configuration
+# https://docs.greatexpectations.io/docs/guides/connecting_to_your_data/sqlalchemy_datasource
+
+config_version: 3.0
+
+# The data context stores all configuration, expectations, and validations
+datasources:
+  events_postgres:
+    class_name: Datasource
+    execution_engine:
+      class_name: SqlAlchemyExecutionEngine
+      connection_string: postgresql+psycopg2://de_user:de_pass@localhost:5432/de_db
+    data_connectors:
+      default_runtime_data_connector_name:
+        class_name: RuntimeDataConnector
+        batch_identifiers:
+          - default_identifier_name
+
+# Stores all expectation suites
+expectations_store_name: expectations_store
+expectations_store:
+  class_name: ExpectationsStore
+  store_backend:
+    class_name: TupleFilesystemStoreBackend
+    base_directory: uncommitted/expectations
+
+# Stores all validation results
+validations_store_name: validations_store
+validations_store:
+  class_name: ValidationsStore
+  store_backend:
+    class_name: TupleFilesystemStoreBackend
+    base_directory: uncommitted/validations
+
+# Stores metadata about expectation suites and validations
+evaluation_parameter_store_name: evaluation_parameter_store
+evaluation_parameter_store:
+  class_name: EvaluationParameterStore
+
+# Stores and configures datasources
+stores:
+  checkpoints_store:
+    class_name: CheckpointsStore
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/checkpoints
+
+# Name of the store used for logging
+data_docs_sites:
+  local_site:
+    class_name: SiteBuilder
+    store_backend:
+      class_name: TupleFilesystemStoreBackend
+      base_directory: uncommitted/data_docs/local_site
+    site_index_builder:
+      class_name: DefaultSiteIndexBuilder
+
+# Default checkpoint config
+checkpoint_store_name: checkpoints_store
+checkpoint:
+  config_version: 1.0
+  class_name: Checkpoint
+  run_name_template: "%Y%m%d-%H%M%S-my_checkpoint_run"
+  validations: []
+
+# Anonymous usage statistics
+anonymous_usage_statistics:
+  enabled: true
+

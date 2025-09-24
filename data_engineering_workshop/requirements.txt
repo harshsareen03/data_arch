@@ -1,0 +1,9 @@
+kafka-python
+psycopg2-binary
+SQLAlchemy
+pandas
+boto3
+pyarrow
+great_expectations
+dbt-core
+dbt-postgres

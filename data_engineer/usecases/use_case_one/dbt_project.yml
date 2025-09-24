@@ -1,0 +1,10 @@
+name: mazenet_use_case_one
+config-version: 2
+profile: default
+source-paths: ["models"]
+target-path: "target"
+clean-targets:
+  - "target"
+models:
+  mazenet_use_case_one:
+    +materialized: table
