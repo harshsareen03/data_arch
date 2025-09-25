@@ -3,6 +3,31 @@ user-app (producer) → Kafka → spark-streaming (consumer) → Database → mo
 ci/cd-pipeline → Docker → Kubernetes
 
 
+
+fintech industry for fraud detection
+transactions event-->kafka-->ml models(fraud score)-->alert system -->database
+
+
+payment processing
+
+ecommerce &retail
+
+user_view_event->kafka -> recommendation engine --> personalized ui
+
+
+medical devices+iot ->kafka->anomaly detection ->alert nurses ->ehr database
+
+
+manufacturing & iot
+
+1)predictive maintainance 
+
+sensor_readings -->kafka ->ml model-maintaince alerts -technical dispatch
+
+
+saas
+
+applogs->kafka->anomaly detection ->alert devops ->grafana dashboard
 real-time-analytics/
 ├── kafka-setup/
 │   ├── kafka-cluster.yaml
@@ -36,3 +61,16 @@ real-time-analytics/
     ├── kafka/
     ├── spark/
     └── database/
+
+
+siem
+
+driver location -->kafka -->flink-->eta calculation -->user app ride request -->kafka -->matching engine -->driver dispatch
+
+netflix recommendation
+
+views event-->kafka-->real-time process ->personalized recommendation
+
+
+build mvp 
+template -->specific data -->business logic
