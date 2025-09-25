@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-kafka-topics
+  namespace: realtime-analytics
+spec:
+  template:
+    spec:
+      containers:
+      - name: kafka-topics
+        image: confluentinc/cp-kafka:7.0.0
+        command:
+          - /bin/sh
+          - -c
+          - |
+            kafka-topics --create --if-not-exists --bootstrap-server realtime-kafka-cluster-kafka-bootstrap:9092 \
+            --topic user-events --partitions 3 --replication-factor 2
+            kafka-topics --create --if-not-exists --bootstrap-server realtime-kafka-cluster-kafka-bootstrap:9092 \
+            --topic processed-events --partitions 3 --replication-factor 2
+      restartPolicy: OnFailure

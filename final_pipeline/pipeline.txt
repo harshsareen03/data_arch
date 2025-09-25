@@ -1,0 +1,38 @@
+user-app (producer) → Kafka → spark-streaming (consumer) → Database → monitoring
+                            ↗
+ci/cd-pipeline → Docker → Kubernetes
+
+
+real-time-analytics/
+├── kafka-setup/
+│   ├── kafka-cluster.yaml
+│   ├── zookeeper.yaml
+│   └── topics-create-job.yaml
+├── user-simulator/
+│   ├── Dockerfile
+│   ├── app.py
+│   └── requirements.txt
+├── spark-streaming/
+│   ├── Dockerfile
+│   ├── streaming-app.py
+│   └── requirements.txt
+├── database/
+│   ├── postgresql.yaml
+│   ├── init.sql
+│   └── schema-migration.yaml
+├── monitoring/
+│   ├── grafana-dashboard.yaml
+│   ├── prometheus-config.yaml
+│   └── kafka-exporter.yaml
+├── k8s-manifests/
+│   ├── namespace.yaml
+│   ├── configmaps.yaml
+│   └── secrets.yaml
+├── jenkins/
+│   ├── Jenkinsfile
+│   └── pipeline-scripts/
+├── docker-compose.yml
+└── helm-charts/
+    ├── kafka/
+    ├── spark/
+    └── database/

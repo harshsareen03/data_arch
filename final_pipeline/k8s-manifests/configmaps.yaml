@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: realtime-analytics
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "realtime-kafka-cluster-kafka-bootstrap:9092"
+  DB_URL: "jdbc:postgresql://postgresql-service:5432/realtime_db"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: realtime-analytics
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS real_time_metrics (
+        id SERIAL PRIMARY KEY,
+        window_start TIMESTAMP,
+        window_end TIMESTAMP,
+        action VARCHAR(50),
+        location VARCHAR(50),
+        event_count BIGINT,
+        total_amount DECIMAL(15,2),
+        unique_users BIGINT,
+        processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
