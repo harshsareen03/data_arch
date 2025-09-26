@@ -1,0 +1,84 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_REGISTRY = 'your-registry'
+        K8S_NAMESPACE = 'realtime-analytics'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-org/real-time-analytics.git'
+            }
+        }
+        
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build User Simulator') {
+                    steps {
+                        dir('user-simulator') {
+                            sh 'docker build -t ${DOCKER_REGISTRY}/user-simulator:${BUILD_NUMBER} .'
+                        }
+                    }
+                }
+                stage('Build Spark Streaming') {
+                    steps {
+                        dir('spark-streaming') {
+                            sh 'docker build -t ${DOCKER_REGISTRY}/spark-streaming:${BUILD_NUMBER} .'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Push Images') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-registry', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'docker login -u ${DOCKER_USER} -p ${DOCKER_PASS} ${DOCKER_REGISTRY}'
+                    sh 'docker push ${DOCKER_REGISTRY}/user-simulator:${BUILD_NUMBER}'
+                    sh 'docker push ${DOCKER_REGISTRY}/spark-streaming:${BUILD_NUMBER}'
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                withKubeConfig([credentialsId: 'k8s-cluster']) {
+                    sh "kubectl apply -f k8s-manifests/namespace.yaml"
+                    sh "kubectl apply -f k8s-manifests/secrets.yaml"
+                    sh "kubectl apply -f kafka-setup/"
+                    sh "kubectl apply -f database/"
+                    sh "kubectl apply -f monitoring/"
+                    
+                    // Update image versions
+                    sh "kubectl set image deployment/user-simulator user-simulator=${DOCKER_REGISTRY}/user-simulator:${BUILD_NUMBER} -n ${K8S_NAMESPACE}"
+                    sh "kubectl set image deployment/spark-streaming spark-streaming=${DOCKER_REGISTRY}/spark-streaming:${BUILD_NUMBER} -n ${K8S_NAMESPACE}"
+                    
+                    sh "kubectl rollout status deployment/user-simulator -n ${K8S_NAMESPACE}"
+                    sh "kubectl rollout status deployment/spark-streaming -n ${K8S_NAMESPACE}"
+                }
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                // Integration tests would go here
+                sh 'echo "Running integration tests..."'
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Cleanup and notifications
+            sh 'docker logout ${DOCKER_REGISTRY}'
+        }
+        success {
+            slackSend channel: '#deployments', message: "Real-time Analytics deployed successfully! Build: ${BUILD_NUMBER}"
+        }
+        failure {
+            slackSend channel: '#deployments', message: "Real-time Analytics deployment failed! Build: ${BUILD_NUMBER}"
+        }
+    }
+}
