@@ -1,0 +1,26 @@
+Git – version control (foundation for all projects)
+
+Docker – containerize applications
+
+MySQL – relational database basics
+
+Kafka – streaming data pipeline
+
+Kubernetes – orchestrate containers
+
+Grafana – monitoring and visualization
+
+
+https://www.youtube.com/watch?v=SWYqp7iY_Tc
+https://www.atlassian.com/git/tutorials
+https://www.youtube.com/watch?v=eGz9DS-aIeY
+https://labs.play-with-docker.com/
+https://www.youtube.com/watch?v=9ylj9NR0Lcg
+https://www.youtube.com/watch?v=R873BlNVUB4
+https://developer.confluent.io/
+https://www.youtube.com/watch?v=X48VuDVv0do
+https://www.katacoda.com/courses/kubernetes
+https://www.youtube.com/watch?v=w-c3KYKQQfs
+
+final_project :
+https://github.com/DataTalksClub/data-engineering-zoomcamp
